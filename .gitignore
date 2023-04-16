@@ -2,3 +2,8 @@ Inutile/*
 Vocaux/*
 Source/*
 *.DS_Store
+Documentation/latex/*.aux
+Documentation/latex/*.log
+Documentation/latex/*.synctex.gz
+Documentation/latex/*.toc
+

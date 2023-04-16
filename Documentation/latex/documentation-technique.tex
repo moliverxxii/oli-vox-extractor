@@ -1,0 +1,77 @@
+\documentclass[10pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage{graphicx}
+\usepackage{amssymb}
+
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+\title{OAM Extracteur Vocal\\Explication Technique}
+\author{Oliver Michalowski}
+\date{2023 IV 16}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+	Le but de cet extracteur vocal est d'enlever la partie instrumentale d'un morceaux présentant
+	une partie vocal à l'aide du fichier audio avec le morceaux complet (avec les voix) et la version 
+	instrumentale du morceau (sans les voix).
+	
+	\subsection{Definitions}
+		Soient \(A\) et \(B\) des vecteurs à \(N\) dimensions\((N \mid N \in \mathbb{N}) \) de
+		
+		Produit scalaire euclidien:
+		\[\langle A \vert B \rangle = \sum^{N-1}_{n = 0}{(A[n] \times B[n])}\]
+		
+		Norme (énergie):
+		\[\Vert A \Vert^{2} = \langle A \vert A \rangle \]
+		
+		Puissance (énergie/échantillon):
+		\[P(A) = \frac{\Vert A \Vert^{2}}{N}\]
+		
+		Estimateur de la covariance:
+		\[
+			\Gamma_{A \vert B}(p) = \frac{1}{N} \times \sum^{+\infty}_{n=-\infty}{(A[n] \times B[n-p])}
+		\]
+		Quand \(p = 0\):
+		\[
+			\Gamma_{A \vert B}(0) = \frac{\langle A \vert B \rangle}{N}
+		\]
+		
+		Coefficient de correlation:
+		\[
+			r_{A \vert B} = \frac{\langle A \vert B \rangle}{\Vert A \Vert \times \Vert B \Vert}
+		\]
+		\[
+			r_{A \vert B}(p) = \frac{\Gamma_{A \vert B}(p)}{\Vert A \Vert \times \Vert B_{-p} \Vert} \quad \backslash \; B_{-p}[n] = B[n - p]
+		\]
+		
+
+	\subsection{Formules}
+		\[VOIX = ORIGINAL - \beta \times INSTRU\]
+		\[ \langle VOIX \vert INSTRU \rangle = 0 \]
+		\[
+			  \Rightarrow  	\langle ORIGINAL						\vert INSTRU \rangle 
+			= 				\langle VOIX + \beta \times INSTRU 	\vert INSTRU \rangle
+		\]
+		\[
+			  \Rightarrow  	\langle ORIGINAL				\vert INSTRU \rangle 
+			= 				\langle VOIX 				\vert INSTRU \rangle
+			+ 				\langle \beta \times INSTRU 	\vert INSTRU \rangle
+		\]
+		\[
+			  \Rightarrow  \langle ORIGINAL \vert INSTRU \rangle 
+			= 0
+			+ \beta \times \Vert INSTRU \Vert ^{2}
+		\]
+		\[
+			  \Rightarrow  \frac{\langle ORIGINAL \vert INSTRU \rangle}{\Vert INSTRU \Vert ^{2}}
+			= \beta
+		\]
+
+
+\end{document}
