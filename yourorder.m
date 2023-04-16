@@ -20,18 +20,11 @@ c_songs =  {...
 "Where Is Everybody",...
 }
 
-for t_song = c_songs
-
-if 0
-t_song = t_song';
-size_title = length(t_song);
-i_char = size_title;
-while(t_song(i_char) == ' ')
-i_char = i_char -1;
-end
-t_song = t_song(1:i_char)
-
-vocaux
-end
-
+disp(["Pistes à traiter: ",num2str(size(c_songs)(2))])
+count_song = 1;
+for ce_song = c_songs
+    t_song = ce_song{1};
+    disp(["    ",num2str(count_song)," ",t_song])
+    count_song++;
+    vocaux
 end
