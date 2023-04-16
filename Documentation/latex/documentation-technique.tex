@@ -18,11 +18,13 @@
 
 \section{Introduction}
 	Le but de cet extracteur vocal est d'enlever la partie instrumentale d'un morceaux présentant
-	une partie vocal à l'aide du fichier audio avec le morceaux complet (avec les voix) et la version 
+	une partie vocale à l'aide du fichier audio avec le morceaux complet (avec les voix) et la version 
 	instrumentale du morceau (sans les voix).
 	
 	\subsection{Definitions}
-		Soient \(A\) et \(B\) des vecteurs à \(N\) dimensions\((N \mid N \in \mathbb{N}) \) de
+		Soient \(A\) et \(B\) des vecteurs à \(N\) dimensions\((N \mid N \in \mathbb{N}) \).
+		\[ A[n],B[n]\in \lbrack-1,1\rbrack\;\forall n \in \mathbb{N}\; \backslash \; 0 \leq n < N\ \]
+		\[ A[n]=0, \; B[n]=0\;\forall n \in \mathbb{N}\; \backslash \; (n < 0)\cup(N\le n) \]
 		
 		Produit scalaire euclidien:
 		\[\langle A \vert B \rangle = \sum^{N-1}_{n = 0}{(A[n] \times B[n])}\]
