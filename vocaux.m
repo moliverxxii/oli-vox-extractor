@@ -1,13 +1,7 @@
 "Vocaux"
 "Récupération des sources"
-%t_song = "The Day The World Went Away";
-t_src = "Source/";
-t_dst = "Vocaux/";
-t_instru = " (Instrumental)";
-t_wav = ".wav";
-t_vox = " (Vocals)";
-instru = audioread([t_src,t_song,t_instru,t_wav]);
-[full, sample_r] = audioread([t_src,t_song,t_wav]);
+[instrum, full, sample_r] =  oli_load_tracks(t_title);
+
 
 "Initialisation"
 n_extr = 2*sample_r;
