@@ -1,5 +1,5 @@
-% Calcul la norme de chac canal de input pour chaque bloc de longueur n_block
-% block_norms: les normes pour chaque bloc 
+% Calcul la norme de chaque canal de input pour chaque bloc de longueur n_block
+% block_norms: les normes pour chaque bloc
 % block_pos  : la position de depart de chaque bloc dans input (relatif à zéro).
 function [block_norms, block_pos] =  oli_block_norm(input, n_block)
 [n_input, width_input]  = size(input);
