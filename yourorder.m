@@ -23,8 +23,8 @@ c_songs =  {...
 disp(["Pistes à traiter: ",num2str(size(c_songs)(2))])
 count_song = 1;
 for ce_song = c_songs
-    t_song = ce_song{1};
-    disp(["    ",num2str(count_song)," ",t_song])
+    tx_title = ce_song{1};
+    disp(["    ",num2str(count_song)," ",tx_title])
     count_song++;
     vocaux
 end
