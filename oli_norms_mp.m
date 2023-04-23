@@ -9,7 +9,7 @@ p_input_block = (-n_input+1):(n_block-1);
 nm_norms_mp = zeros(n_corr,c_input);
 for k_norms = 1:length(p_input_block)
     rg_norms = max(1, 1 - p_corr(k_norms)):...
-               min(n_input, n_blocl- p_corr(k_norms));
+               min(n_input, n_block - p_corr(k_norms));
     norms_y_mp(n,:) =  sum(au_input(rg_norms,:).^2);
 end
 norms_y_mp = norms_y_mp.^.5;
