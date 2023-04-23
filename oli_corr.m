@@ -8,5 +8,5 @@ n_y = size(au_y)(1);
 nm_x = sum(au_x.^2).^.5;
 nm_y_mp = oli_norms_mp(au_y, n_x);
 
-vect_corr = cv_output./(nm_y_mp .* nm_x);
+cr_output = cv_output./(nm_y_mp .* nm_x);
 end
