@@ -16,17 +16,17 @@
 
 %Paramètres
 %Reconstruction
-t_block = .01 %Durée d'un bloc de reconstruction. (secondes)
-%r_block     %Taux de recouvrement (pourcents).
+t_block = 2   %Durée d'un bloc de reconstruction. (secondes)
+%r_block      %Taux de recouvrement (pourcents).
 
 %Recherche de la position globale.
-c_block2 = 1000; % t_block2/t_block: Nombre de blocs de reconstruction (block)
-               % dans un bloc de recherche de positions (block2).
+c_block2 = 5; % t_block2/t_block: Nombre de blocs de reconstruction (block)
+                 % dans un bloc de recherche de positions (block2).
 t_block2 = c_block2 * t_block % Durée d'un bloc de recherche de position.
-t_tail = 10*t_block            % Durée de la queue avant et après un bloc de
+t_tail   = t_block/4          % Durée de la queue avant et après un bloc de
                               % recherge de position pour réglage fin.
-c_block3 = 50;
-t_block3 = c_block3 * t_block;
+c_block3 = 400;
+t_block3 = t_block/c_block3;
 
 "Vocaux"
 "Récupération des sources"
@@ -35,6 +35,7 @@ t_block3 = c_block3 * t_block;
 "Initialisation"
 n_block  = floor(f_samplerate * t_block);
 n_block2 = c_block2 * n_block;
+n_block3 = n_block/c_block3
 n_tail   = floor(f_samplerate * t_tail);
 
 [n_instru, c_instru] = size(au_instru);
@@ -47,101 +48,84 @@ au_vox = zeros(n_full,c_full);
 %norms_instru_mp = oli_norms_mp(au_instru(:,1), n_block);
 
 "Calcul des normes des petits blocs."
-[nm_full_block,   rg_full_block]   = oli_block_norm(au_full,   n_block);
-[nm_instru_block, rg_instru_block] = oli_block_norm(au_instru, n_block);
+[nm_full_block,   rg_full_block]   = oli_block_norm(au_full,   n_block3);
+[nm_instru_block, rg_instru_block] = oli_block_norm(au_instru, n_block3);
 
-tm_init = time;
-
+tm_init      = time;
+b_last_block = false;
 %Calcul d'un bloc de recherche de positions (block2).
-for k_block2 = 0:length(rg_full_block)-1
+for k_block2 = 0:n_block2:(n_full-1)
     %On trouve le meilleur extrait a soustraire.
-    n_nm_block2 = rg_full_block(k_block2+1);
-    if(1+c_block2*k_block2 > length(rg_full_block))
-	break
+    if(k_block2 + n_block2 > n_full)
+        disp("Dernier bloc.")
+	n_block2 = n_full - k_block2;
 
     end
-    r_actuel = rg_full_block(1+c_block2*k_block2)/n_full;
-    tm_actuel = time;
-    tm_final_m_actuel = (r_actuel^(-1) - 1) * (tm_actuel - tm_init);
-    tm_final = tm_actuel + tm_final_m_actuel;
-    disp(["Temps restant: ",...
-          num2str(floor(tm_final_m_actuel/60)),...
-	  " min. Fin prévue: ",...
-	  ctime(tm_final)])
-    nm_block2   = nm_full_block(1+k_block2:c_block2+k_block2, :);
-    [cr_block2,     p_block2]     = oli_corr(nm_block2, nm_instru_block);
-    [cr_max_block2,  n_max_block2]  = max(cr_block2, [], 1); %plus grand du bloc2.
-    [cr2_max_block2, n2_max_block2] = max(cr_max_block2); %plus grand de la stéréo.
-    p_max_block2 = p_block2(n_max_block2(n2_max_block2));
-    display(cr_max_block2)
+    au_full(k_block2+[1,n_block2],:);
+    n_block32 = floor(n_block2/n_block3);
+    rg_nm_full = k_block2/n_block3  + [1: n_block32]; %TODO FLOOR OU CEIL???
+    %TODO ICI trouver la valeur n_x_start
+    p_max_nm_block2_instru = oli_cancel_parameters(nm_full_block,...
+                                  nm_instru_block,...
+				  rg_nm_full(1),...
+				  n_block32);
+    disp(-p_max_nm_block2_instru*t_block3);
 
-    rg_instru2 =...
-        max(1,               1 + rg_full_block(1+k_block2) - p_max_block2 - n_tail):...
-        min(n_instru, n_block2 + rg_full_block(1+k_block2) - p_max_block2 + n_tail);
-    n_instru2 = length(rg_instru2);
+				  
 
-    au_instru2 = au_instru(rg_instru2,:);
-    %Calcul des normes de l'instrumental
-    nm_instru2_mp = oli_norms_mp(au_instru2, c_block3 * n_block);
+    %au_instru2 = au_instru(rg_instru2,:);
 
     %Calcul d'un bloc de reconstruction (block).
-    for k_block = (0:c_block3:(c_block2-1))
-	    %Calcul de la covacovariance
-	    %p_corr: (-ny+1 : n_x-1)
-	    % k = p_corr + N_y - 1
-	    k_global = 1 + k_block+c_block2*k_block2;
-	    if(k_global>length(rg_full_block))
-		break;
-	    end
-            n_block_start = 1 + rg_full_block(k_global);
-	    n_block_end   = min(n_full, n_block_start + c_block3*n_block - 1);
-	    rg_block = n_block_start:n_block_end;
-	    au_block = au_full(rg_block,:);
-	    [cv_block_instru2, p_block_instru2] = oli_cov(au_block, au_instru2);
-
-	    %Calcul de la norme de l'extrait
-	    nm_block = sum(abs(au_block).^2,1).^.5;
-
-	    %Calcul de la correlation
-	    %p: (-ny+1 : nx-1);
-	    if(length(rg_block) < n_block*c_block3)
-		n2_block = length(rg_block);
-		nm_instru2_mp = oli_norms_mp(au_instru2, n2_block);
-	    end
-	    cr_block_instru2 =   cv_block_instru2...
-	                      ./(nm_instru2_mp .* nm_block);
-
-	    %On trouve la position dans l'extrait
-	    [cr_block_instru2_max, n_block_instru2_max] =...
-                max(abs(cr_block_instru2),[],1);
-            [cr2_block_instru_max, n2_block_instru2_max] =...
-	        max(cr_block_instru2_max);
-            n3_block_instru2_max = n_block_instru2_max(n2_block_instru2_max);
-	    p_block_instru2_max = p_block_instru2(n3_block_instru2_max);
-
-	    %Ajout aux statistiques, delta temporel (échantillon et
-	    %secondes), corrélation.
-
-	    %Calcul du range
-	    n_max_corr_start = rg_instru2(1) - p_block_instru2_max;
-	    n_max_corr_end   = n_max_corr_start + c_block3*n_block - 1;
-
-	    rg_max_corr = max(1,n_max_corr_start):min(n_instru,n_max_corr_end);
+    for k_block = k_block2 + n_block*(0:c_block2 - 1)
+        %Calcul de la covacovariance
+        %p_corr: (-ny+1 : n_x-1)
+        % k = p_corr + N_y - 1
+	if(k_block + n_block > n_full)
+	    disp("Dernier bloc.")
+	    b_last_block = true;
+	    n_block = n_full - k_block;
+	end
+	rg_block = k_block + (1:n_block);
 
 
-	    %Calcul du coefficient.
-	    coefficient = cv_block_instru2(n3_block_instru2_max, :)...
-	    		./(nm_instru2_mp(n3_block_instru2_max,:).^2);
-            disp([cr_block_instru2_max,coefficient, length(rg_max_corr) - length(rg_block)])
-            if(length(rg_block) == length(rg_max_corr))
-		%Ajout du bloc au flux.
-		au_vox(rg_block,:) =    au_full(rg_block,:)...
-				      - coefficient...
-				     .* au_instru(rg_max_corr,:);
-            end
+        %Calcul de la norme de l'extrait
+        %nm_block = sum(abs(au_block).^2,1).^.5;
+
+        %Calcul de la correlation
+
+        %On trouve la position dans l'extrait
+
+        %Ajout aux statistiques, delta temporel (échantillon et
+        %secondes), corrélation.
+
+        %Calcul du range
+        %n_max_corr_start = rg_instru2(1) - p_block_instru2_max;
+        %n_max_corr_end   = n_max_corr_start + c_block3*n_block - 1;
+
+        %rg_max_corr = max(1,n_max_corr_start):min(n_instru,n_max_corr_end);
+
+
+        %Calcul du coefficient.
+	
+        %Ajout du bloc au flux.
+        %au_vox(rg_block, :) = oli_subtract_block(au_full, au_instru,n_full_start,  n_block, p_max_corr, coefficient); %TODO: DANGER
+	if(b_last_block)
+	    break;
+	end
     end
 end
 %Écriture du fichier.
-oli_save_track(au_vox, f_samplerate, tx_title);
+%oli_save_track(au_vox, f_samplerate, tx_title);
 %Écriture du ficher statistique.
-"Fin"
+disp("Fin")
+
+%%BOUCLE1
+%On va analyser un bloc de quelques secondes, et on regarde où il se trouve.
+%block3: normes: quelques millisecondes
+%block2: bloc de reconstruction. moins de trois secondes
+%block1: bloc de recherche de position. quelques secondes
+
+%%BOUCLE2
+%%FIN BOUCLE2
+
+%%FIN BOUCLE1
